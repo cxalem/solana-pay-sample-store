@@ -2,17 +2,18 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ShoppingCart } from 'lucide-react'
+import { ShoppingCart, Receipt } from 'lucide-react'
 import { WalletDropdown } from '@/components/wallet-dropdown'
 import { ThemeSelect } from '@/components/theme-select'
 import { Button } from '@/components/ui/button'
 import { useCart } from '@/store/providers/cart-provider'
 import { useDrawer } from '@/store/hooks/use-drawer'
-import { CartDrawer } from '@/store/components/cart-drawer'
+import { CartDrawer, PurchasesDrawer } from '@/store/components'
 
 export function Navbar() {
   const { cart } = useCart()
   const cartDrawer = useDrawer()
+  const purchasesDrawer = useDrawer()
 
   return (
     <>
@@ -28,8 +29,18 @@ export function Navbar() {
               <Button 
                 variant="outline" 
                 size="icon" 
+                onClick={purchasesDrawer.open}
+                title="Purchase History"
+              >
+                <Receipt className="h-5 w-5" />
+                <span className="sr-only">Purchase history</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
                 className="relative"
                 onClick={cartDrawer.open}
+                title="Shopping Cart"
               >
                 <ShoppingCart className="h-5 w-5" />
                 {cart.itemCount > 0 && (
@@ -47,6 +58,7 @@ export function Navbar() {
       </nav>
 
       <CartDrawer isOpen={cartDrawer.isOpen} onClose={cartDrawer.close} />
+      <PurchasesDrawer isOpen={purchasesDrawer.isOpen} onClose={purchasesDrawer.close} />
     </>
   )
 }

@@ -8,8 +8,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { CheckoutDialog } from "@/components/checkout";
+import { useCheckout } from "@/hooks";
 import Image from "next/image";
 import { Trash2, Minus, Plus } from "lucide-react";
+import { toast } from "sonner";
+import { useSolana } from "@/components/solana/use-solana";
+import { getExplorerLink } from "gill";
+import { getSolanaClusterMoniker } from "@wallet-ui/react-gill";
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -17,7 +23,40 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
-  const { cart, removeFromCart, updateQuantity } = useCart();
+  const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
+  const { cluster } = useSolana();
+
+  const cartTotalInUSDC = cart.total;
+
+  // Generate compact memo with product IDs: "Order #12345678: id:size:color:qty,id:size:color:qty"
+  const generateOrderMemo = () => {
+    const orderId = Date.now().toString().slice(-8);
+    const items = cart.items
+      .map(item => `${item.product.id}:${item.size}:${item.color}:${item.quantity}`)
+      .join(',');
+    return `Order #${orderId}: ${items}`;
+  };
+
+  const checkout = useCheckout({
+    label: 'Solana Pay Store',
+    message: `Thanks for your purchase of ${cart.itemCount} item${cart.itemCount !== 1 ? 's' : ''}!`,
+    memo: generateOrderMemo(),
+    onPaymentFound: (signature, memo) => {
+      const explorerUrl = getExplorerLink({ 
+        transaction: signature, 
+        cluster: getSolanaClusterMoniker(cluster.id) 
+      });
+      
+      toast.success('Payment confirmed!', {
+        description: memo || `Transaction: ${signature.substring(0, 8)}...`,
+        action: {
+          label: 'View',
+          onClick: () => window.open(explorerUrl, '_blank'),
+        },
+      });
+      clearCart();
+    },
+  });
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -107,16 +146,46 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </div>
 
             <div className="border-t pt-4 space-y-4 p-4">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold">Total:</span>
-                <span className="text-2xl font-bold">
-                  ${cart.total.toFixed(2)}
-                </span>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">Total:</span>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold">
+                      ${cart.total.toFixed(2)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {cartTotalInUSDC.toFixed(2)} USDC
+                    </div>
+                  </div>
+                </div>
               </div>
-              <Button className="w-full" size="lg">
-                Checkout with Solana Pay
+              <Button 
+                className="w-full" 
+                size="lg"
+                onClick={() => checkout.openCheckout(cartTotalInUSDC)}
+                disabled={cart.items.length === 0}
+              >
+                Pay with USDC
               </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Using Solana Pay on Devnet
+              </p>
             </div>
+            
+            <CheckoutDialog
+              isOpen={checkout.isOpen}
+              onClose={checkout.closeCheckout}
+              amount={checkout.amount}
+              items={cart.items}
+              paymentRequest={checkout.paymentRequest}
+              qrCode={checkout.qrCode}
+              signature={checkout.signature}
+              memo={checkout.memo}
+              isSearching={checkout.isSearching}
+              paymentFound={checkout.paymentFound}
+              isGenerating={checkout.isGenerating}
+              error={checkout.error}
+            />
           </div>
         )}
       </SheetContent>
