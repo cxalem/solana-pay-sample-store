@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import type { Product } from "@/store/types";
 
 interface UseProductSelectionReturn {
@@ -16,13 +16,13 @@ interface UseProductSelectionReturn {
 export function useProductSelection(): UseProductSelectionReturn {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const selectProduct = useCallback((product: Product) => {
+  const selectProduct = (product: Product) => {
     setSelectedProduct(product);
-  }, []);
+  };
 
-  const clearSelection = useCallback(() => {
+  const clearSelection = () => {
     setSelectedProduct(null);
-  }, []);
+  };
 
   return {
     selectedProduct,
@@ -30,4 +30,3 @@ export function useProductSelection(): UseProductSelectionReturn {
     clearSelection,
   };
 }
-

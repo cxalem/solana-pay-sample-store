@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { CheckoutDialog } from "@/components/checkout";
 import { useCheckout } from "@/hooks";
 import Image from "next/image";
-import { Trash2, Minus, Plus } from "lucide-react";
+import { Trash2, Minus, Plus, CheckCircleIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useSolana } from "@/components/solana/use-solana";
 import { getExplorerLink } from "gill";
@@ -46,17 +46,19 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         transaction: signature, 
         cluster: getSolanaClusterMoniker(cluster.id) 
       });
-      
       toast.success('Payment confirmed!', {
         description: memo || `Transaction: ${signature.substring(0, 8)}...`,
-        action: {
-          label: 'View',
-          onClick: () => window.open(explorerUrl, '_blank'),
-        },
+        icon: <CheckCircleIcon className="w-4 h-4" />
       });
-      clearCart();
     },
   });
+
+  const handleCheckoutClose = () => {
+    if (checkout.paymentFound) {
+      clearCart();
+    }
+    checkout.closeCheckout();
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -168,13 +170,13 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 Pay with USDC
               </Button>
               <p className="text-xs text-center text-muted-foreground">
-                Using Solana Pay on Devnet
+                Using Solana Pay on Mainnet
               </p>
             </div>
             
             <CheckoutDialog
               isOpen={checkout.isOpen}
-              onClose={checkout.closeCheckout}
+              onClose={handleCheckoutClose}
               amount={checkout.amount}
               items={cart.items}
               paymentRequest={checkout.paymentRequest}

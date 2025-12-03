@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { Product, SelectedVariation } from "@/store/types";
 
 interface UseProductVariationsReturn {
@@ -72,13 +72,13 @@ export function useProductVariations(
     [isSelectionComplete, stockAvailable]
   );
 
-  const setSelectedSize = useCallback((size: string) => {
+  const setSelectedSize = (size: string) => {
     setSelectedVariation((prev) => ({ ...prev, size }));
-  }, []);
+  };
 
-  const setSelectedColor = useCallback((color: string) => {
+  const setSelectedColor = (color: string) => {
     setSelectedVariation((prev) => ({ ...prev, color }));
-  }, []);
+  };
 
   return {
     selectedVariation,
@@ -93,4 +93,3 @@ export function useProductVariations(
     currentVariation,
   };
 }
-

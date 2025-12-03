@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import type { Product, ProductImage, SelectedVariation } from "@/store/types";
 
 type ViewType = "front" | "back";
@@ -60,11 +60,11 @@ export function useProductView(
     );
   }, [product, productImage, currentView]);
 
-  const toggleView = useCallback(() => {
+  const toggleView = () => {
     if (hasBackImage) {
       setCurrentView((prev) => (prev === "front" ? "back" : "front"));
     }
-  }, [hasBackImage]);
+  };
 
   return {
     currentView,
@@ -76,4 +76,3 @@ export function useProductView(
     hasBackImage,
   };
 }
-

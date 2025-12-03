@@ -116,7 +116,7 @@ export function PurchasesDrawer({ isOpen, onClose }: PurchasesDrawerProps) {
 
                   <Button variant="outline" size="sm" className="w-full" asChild>
                     <a
-                      href={`https://explorer.solana.com/tx/${purchase.signature}?cluster=devnet`}
+                      href={`https://explorer.solana.com/tx/${purchase.signature}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2"

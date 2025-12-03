@@ -19,31 +19,31 @@ export interface Purchase {
   timestamp: number
 }
 
+function parseMemo(memo: string) {
+  const match = memo.match(/Order #(\d+): (.+)/)
+  if (!match) return null
+
+  const [, orderId, itemsStr] = match
+  const items = itemsStr.split(',').map((itemStr) => {
+    const [productId, size, color, quantity] = itemStr.split(':')
+    return { productId, size, color, quantity: parseInt(quantity, 10) }
+  })
+
+  return { orderId, items }
+}
+
+function calculateAmount(items: Purchase['items']) {
+  return items.reduce((total, item) => {
+    const product = products.find((p) => p.id === item.productId)
+    return total + (product?.basePrice || 0) * item.quantity
+  }, 0)
+}
+
 export function usePurchaseHistory() {
   const { account } = useSolana()
   const [connection] = useState(() => new Connection(RPC_ENDPOINT, 'confirmed'))
   const [purchases, setPurchases] = useState<Purchase[]>([])
   const [isLoading, setIsLoading] = useState(false)
-
-  const parseMemo = useCallback((memo: string) => {
-    const match = memo.match(/Order #(\d+): (.+)/)
-    if (!match) return null
-
-    const [, orderId, itemsStr] = match
-    const items = itemsStr.split(',').map((itemStr) => {
-      const [productId, size, color, quantity] = itemStr.split(':')
-      return { productId, size, color, quantity: parseInt(quantity, 10) }
-    })
-
-    return { orderId, items }
-  }, [])
-
-  const calculateAmount = useCallback((items: Purchase['items']) => {
-    return items.reduce((total, item) => {
-      const product = products.find((p) => p.id === item.productId)
-      return total + (product?.basePrice || 0) * item.quantity
-    }, 0)
-  }, [])
 
   const fetchPurchases = useCallback(async () => {
     if (!account?.address) {
@@ -81,7 +81,7 @@ export function usePurchaseHistory() {
     } finally {
       setIsLoading(false)
     }
-  }, [account?.address, connection, parseMemo, calculateAmount])
+  }, [account?.address, connection])
 
   useEffect(() => {
     fetchPurchases()

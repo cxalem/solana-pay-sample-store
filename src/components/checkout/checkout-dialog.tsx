@@ -1,44 +1,33 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { PaymentQRDisplay } from './payment-qr-display';
-import { PaymentStatusBadge } from './payment-status-badge';
-import { PaymentDetails } from './payment-details';
-import { ExternalLink } from 'lucide-react';
-import type { PublicKey } from '@solana/web3.js';
-import type { PaymentStatus } from '@/lib/solana-pay/types';
-import type { CartItem } from '@/store/types/cart';
-import { useSolana } from '@/components/solana/use-solana';
-import { getExplorerLink } from 'gill';
-import { getSolanaClusterMoniker } from '@wallet-ui/react-gill';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { PaymentQRDisplay } from './payment-qr-display'
+import { PaymentStatusBadge } from './payment-status-badge'
+import { PaymentDetails } from './payment-details'
+import { ExternalLink } from 'lucide-react'
+import type { PublicKey } from '@solana/web3.js'
+import type { PaymentStatus } from '@/lib/solana-pay/types'
+import type { CartItem } from '@/store/types/cart'
+import { useSolana } from '@/components/solana/use-solana'
+import { getExplorerLink } from 'gill'
+import { getSolanaClusterMoniker } from '@wallet-ui/react-gill'
 
 interface CheckoutDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  amount: number;
-  items?: CartItem[];
-  paymentRequest: { url: URL; reference: PublicKey; recipient: PublicKey } | null;
-  qrCode: { append: (element: HTMLElement) => void } | null;
-  signature: string | null;
-  memo: string | null;
-  isSearching: boolean;
-  paymentFound: boolean;
-  isGenerating: boolean;
-  error: Error | null;
+  isOpen: boolean
+  onClose?: () => void
+  amount: number
+  items?: CartItem[]
+  paymentRequest: { url: URL; reference: PublicKey; recipient: PublicKey } | null
+  qrCode: { append: (element: HTMLElement) => void } | null
+  signature: string | null
+  memo: string | null
+  isSearching: boolean
+  paymentFound: boolean
+  isGenerating: boolean
+  error: Error | null
 }
 
-/**
- * Main checkout dialog component that orchestrates the Solana Pay payment flow.
- * Displays QR code, payment status, and handles the complete checkout experience.
- */
 export function CheckoutDialog({
   isOpen,
   onClose,
@@ -53,39 +42,30 @@ export function CheckoutDialog({
   isGenerating,
   error,
 }: CheckoutDialogProps) {
-  const { cluster } = useSolana();
-  
-  // Derive payment status from state
-  const paymentStatus: PaymentStatus = paymentFound 
-    ? 'confirmed' 
-    : isSearching 
-      ? 'pending' 
-      : isGenerating 
-        ? 'pending' 
-        : 'idle';
+  const { cluster } = useSolana()
 
-  useEffect(() => {
-    if (paymentFound && signature) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [paymentFound, signature, onClose]);
+  // Derive payment status from state
+  const paymentStatus: PaymentStatus = paymentFound
+    ? 'confirmed'
+    : isSearching
+      ? 'pending'
+      : isGenerating
+        ? 'pending'
+        : 'idle'
 
   const getDialogTitle = () => {
-    if (paymentFound) return 'Payment Confirmed!';
-    if (error) return 'Payment Failed';
-    return 'Pay with Solana';
-  };
+    if (paymentFound) return 'Payment Confirmed!'
+    if (error) return 'Payment Failed'
+    return 'Pay with Solana'
+  }
 
   const getDialogDescription = () => {
-    if (paymentFound) return 'Your payment has been confirmed successfully';
-    if (isSearching) return 'Waiting for your payment...';
-    if (isGenerating) return 'Generating payment request...';
-    if (error) return error.message || 'There was an error processing your payment';
-    return 'Scan the QR code with your Solana wallet to complete the payment';
-  };
+    if (paymentFound) return 'Your payment has been confirmed successfully'
+    if (isSearching) return 'Waiting for your payment...'
+    if (isGenerating) return 'Generating payment request...'
+    if (error) return error.message || 'There was an error processing your payment'
+    return 'Scan the QR code with your Solana wallet to complete the payment'
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -101,11 +81,7 @@ export function CheckoutDialog({
         <div className="space-y-4 overflow-x-hidden">
           {paymentFound && signature ? (
             <div className="space-y-4">
-              <PaymentDetails 
-                amount={amount} 
-                items={items}
-                recipient={paymentRequest?.recipient.toBase58()}
-              />
+              <PaymentDetails amount={amount} items={items} recipient={paymentRequest?.recipient.toBase58()} />
               {memo && (
                 <div className="p-3 bg-muted rounded-lg">
                   <p className="text-xs text-muted-foreground">Order Details</p>
@@ -114,23 +90,13 @@ export function CheckoutDialog({
               )}
               <div className="flex flex-col items-center gap-3 p-6 bg-green-50 dark:bg-green-950/20 rounded-lg">
                 <div className="text-center">
-                  <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                    Transaction confirmed!
-                  </p>
-                  <p className="text-xs text-green-700 dark:text-green-300 mt-1">
-                    Closing automatically...
-                  </p>
+                  <p className="text-sm font-medium text-green-900 dark:text-green-100">Transaction confirmed!</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="w-full"
-                >
+                <Button variant="outline" size="sm" asChild className="w-full">
                   <a
-                    href={getExplorerLink({ 
-                      transaction: signature, 
-                      cluster: getSolanaClusterMoniker(cluster.id) 
+                    href={getExplorerLink({
+                      transaction: signature,
+                      cluster: getSolanaClusterMoniker(cluster.id),
                     })}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -140,27 +106,21 @@ export function CheckoutDialog({
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 </Button>
+                <Button onClick={onClose} className="w-full">
+                  Done
+                </Button>
               </div>
             </div>
           ) : error ? (
             <div className="space-y-4">
               <div className="p-4 bg-destructive/10 rounded-lg">
-                <p className="text-sm text-destructive">
-                  {error.message || 'An unknown error occurred'}
-                </p>
+                <p className="text-sm text-destructive">{error.message || 'An unknown error occurred'}</p>
               </div>
             </div>
           ) : (
             <>
-              <PaymentQRDisplay 
-                qrCode={qrCode} 
-                url={paymentRequest?.url}
-              />
-              <PaymentDetails 
-                amount={amount} 
-                items={items}
-                recipient={paymentRequest?.recipient.toBase58()}
-              />
+              <PaymentQRDisplay qrCode={qrCode} url={paymentRequest?.url} />
+              <PaymentDetails amount={amount} items={items} recipient={paymentRequest?.recipient.toBase58()} />
             </>
           )}
         </div>
@@ -174,6 +134,5 @@ export function CheckoutDialog({
         )}
       </DialogContent>
     </Dialog>
-  );
+  )
 }
-
